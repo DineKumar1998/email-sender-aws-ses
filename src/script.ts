@@ -5,6 +5,7 @@ import fs from "node:fs";
 import csv from "csv-parser";
 import path from "node:path";
 import ejs from "ejs";
+import cron from "node-cron";
 
 const AWS_SES = new AWS.SES(ENVS_VARS);
 
@@ -68,4 +69,16 @@ async function run(): Promise<void> {
     });
 }
 
+// Menual call
 run();
+
+// 9 AM call each day using cron
+cron.schedule("0 9 * * *", async () => {
+  logger.info("📧 Starting daily email job at 9:00 AM");
+  try {
+    await run();
+    logger.info("✅ Emails sent successfully");
+  } catch (err) {
+    logger.error("❌ Email job failed", err);
+  }
+});
